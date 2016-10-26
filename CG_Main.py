@@ -20,7 +20,7 @@ import CG_System
 
 def main():
     
-    Script, deg_polymerization, num_polymer, box_length, zbox_length, dispersity, substrate, Solv_Screen = sys.argv
+    Script, deg_polymerization, num_polymer, box_length, zbox_length, dispersity, substrate, Solv_Screen, Ramp_Time, Hold_Time = sys.argv
     deg_polymerization = int(deg_polymerization)
     num_polymer = int(num_polymer)
     box_length = float(box_length)
@@ -36,7 +36,7 @@ def main():
 
 
     CG_System.P3HTHuangDataLammps(Position_M, Position_S1, Position_S2, Data_Filename, box_length, zBoxLength)
-    CG_System.Run_Huang_Equil(Name, Data_Filename, Solv_Screen)
+    CG_System.Run_Huang_Equil(Name, Data_Filename, Solv_Screen, Ramp_Time = Ramp_Time, Hold_Time = Hold_Time)
 
     return
 

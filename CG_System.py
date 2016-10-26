@@ -241,7 +241,7 @@ def P3HTHuangDataLammps(Position_M, Position_S1, Position_S2, Filename, box_leng
     return
 
 
-def Run_Huang_Equil(Name, Data_In, Solv_Screen, Dump = 'None', Num_Steps= 1000000, Time_Step = 4, Total_Time = 100,Solv_Screen_End = 1.0, NVT = True, Substrate = True):
+def Run_Huang_Equil(Name, Data_In, Solv_Screen, Dump = 'None', Num_Steps= 1000000, Time_Step = 4, Ramp_Time = 100, Hold_Time = 0, Solv_Screen_End = 1.0, NVT = True, Substrate = True):
     """
     Function for generating an input file for an NVT equilibration simulation of Huang Model
     
@@ -255,7 +255,8 @@ def Run_Huang_Equil(Name, Data_In, Solv_Screen, Dump = 'None', Num_Steps= 100000
         Dump = name of dumpfile to be outputed, Default is none
         Num_Steps = number of timesteps to integrate equations of motion
         Time_Step = size of time increment (fs)
-        Total_Time = total time running (ns)
+        Ramp_Time = total time running while ramping solvent screening (ns)
+        Hold_Time = total time running after ramping solvent screening (ns)
         Temp = Temperature to run simulation at
     """
     Init_Temp = Configure.Template_Path + "init_Langevin.in"
@@ -309,18 +310,18 @@ def Run_Huang_Equil(Name, Data_In, Solv_Screen, Dump = 'None', Num_Steps= 100000
             i += 10
     os.system( 'rm %s' % Restart_Out)
 
-    Run_Temp = Configure.Template_Path + "Langevin.in"
+    Run_Temp = Configure.Template_Path + "Langevin_Ramp.in"
     if NVT:
         NVT_str = "NVT"
     else:
         NVT_str = "NPT"
-    Stop = Num_Steps * int(math.ceil(Total_Time % (Num_Steps * Time_Step / 1000000)))
+    Stop = Num_Steps * int(math.ceil(Ramp_Time % (Num_Steps * Time_Step / 1000000)))
 
-    for i in range (int(math.ceil(Total_Time % (Num_Steps * Time_Step / 1000000)))):
+    for i in range (int(math.ceil(Ramp_Time % (Num_Steps * Time_Step / 1000000)))):
         Restart_In = Restart_Out
-        Restart_Out = "restart.%s_%s_%d" % Name, NVT_str, i
-        Run_File = "in.%s_%s_%d" % Name, NVT_str, i
-        File_Out1 = "log.%s_%s_%d" % Name, NVT_str, i
+        Restart_Out = "restart.%s_%s_%d_Ramp" % Name, NVT_str, i
+        Run_File = "in.%s_%s_%d_Ramp" % Name, NVT_str, i
+        File_Out1 = "log.%s_%s_%d_Ramp" % Name, NVT_str, i
         with open(Run_Temp, 'r') as f:
             template = f.read()
         template.format(Solv_Screen_Start = Solv_Screen, Solv_Screen_End = Solv_Screen_End, NVT = NVT, Substrate = Substrate,Restart_Out = Restart_Out,Restart_In = Restart_In,Temp_In = 300, Temp_Out = 300, Time_Step = Time_Step, Num_Steps = Num_Steps, Stop = Stop)
@@ -352,6 +353,45 @@ def Run_Huang_Equil(Name, Data_In, Solv_Screen, Dump = 'None', Num_Steps= 100000
                 time.sleep(600)
                 i += 10
         os.system( 'rm %s' % Restart_Out)
+
+    Run_Temp = Configure.Template_Path + "Langevin_Hold.in"
+
+    for i in range (int(math.ceil(Hold_Time % (Num_Steps * Time_Step / 1000000)))):
+        Restart_In = Restart_Out
+        Restart_Out = "restart.%s_%s_%d_Hold" % Name, NVT_str, i
+        Run_File = "in.%s_%s_%d_Hold" % Name, NVT_str, i
+        File_Out1 = "log.%s_%s_%d_Hold" % Name, NVT_str, i
+        with open(Run_Temp, 'r') as f:
+            template = f.read()
+        template.format(Solv_Screen_End = Solv_Screen_End, NVT = NVT, Substrate = Substrate,Restart_Out = Restart_Out,Restart_In = Restart_In,Temp_In = 300, Temp_Out = 300, Time_Step = Time_Step, Num_Steps = Num_Steps)
+        with open(Run_File, 'w') as f:
+            f.write(template)
+            """  code to determine # of processors, num nodes"""
+    with open(Sub_Temp, 'r') as f:
+        sub_template = f.read()
+            sub_template.format(Sim_Name = NVT_str + "_" +  Name + "_d" % i, path = Configure.Comet_Path % Name, NProcs = Nodes*NProcs, Nodes=Nodes, tpn = NProcs)
+            with open(Sub_File, 'w') as f:
+                f.write(sub_template)
+            os.system( Configure.c2c % (Sub_File, Name))
+            os.system( Configure.c2c % (Run_File, Name))
+            os.system( Configure.c2c % (Restart_In, Name))
+            os.system( Configure.c2l % (Name, File_Out1))
+            try:
+                File = open(File_Out1,'r')
+        except:
+            subprocess.call(["ssh", Configure.Comet_Login, Configure.SBATCH % (Name, Sub_File)])
+            Finished = False
+            i = 0
+            while not Finished:
+                os.system( Configure.c2l % (Name, Restart_Out))
+                try:
+                    File = open(Restart_Out,'r')
+                    Finished = True
+                except:
+                    print "Sleeping process", i, "minutes"
+                    time.sleep(600)
+                    i += 10
+    os.system( 'rm %s' % Restart_Out)
 
     """File.write( '# Input file for running an NVT Equilibration in LAMMPS, Filename = %s\n\n' % In_File)
     File.write('units real\n')
