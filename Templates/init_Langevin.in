@@ -65,7 +65,7 @@ thermo         100
 
 #velocity        all  create  550.0  349359 mom yes dist gaussian 
 fix 0 all langevin 800. 800. 100 1000
-fix 1 all nve
+fix 1 all nve 0.1
 
 #fix 1 all nph iso 1.0 1.0 2000.0 
 #fix 2 all langevin 550.0 550.0 180.0 12345
@@ -79,7 +79,3 @@ dump 0 all custom 1000 Soft.lammpstrj id type mol x y z ix iy iz
 timestep        2.0  
 run             2000000
 write_restart {Restart_Out}
-
-
-
-

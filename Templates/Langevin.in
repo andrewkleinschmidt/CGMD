@@ -1,7 +1,6 @@
 # LAMMPS input CG P3HT/C60 NVT/NPT 
-
+#
 newton off
-
 variable Solv_Screen equal ramp({Solv_Screen_Start},{Solv_Screen_End})
 
 bond_style	hybrid harmonic poly8
@@ -78,17 +77,18 @@ else &
 
 fix 1 all nve 0.1
 
-fix 2 all adapt 1 pair lj96/cut epsilon 1 1 v_Solv_Screen*
-
 if {Substrate} then &
   "fix 3 all wall/lj126 zlo EDGE .369 3.35 13.3047"
+
+fix 4 all adapt 1 pair lj96/cut epsilon 1 1 v_pair11
+fix 5 all adapt 1 pair lj96/cut epsilon 1 2 v_pair12
+fix 6 all adapt 1 pair lj96/cut epsilon 1 3 v_pair13  
+fix 7 all adapt 1 pair lj96/cut epsilon 2 2 v_pair22
+fix 8 all adapt 1 pair lj96/cut epsilon 2 3 v_pair23 
+fix 9 all adapt 1 pair lj96/cut epsilon 3 3 v_pair33
 
 dump           0 atomdump all custom 1000000 Equil_SolvNPH14.lammpstrj id type mol x y z ix iy iz
 
 timestep        {Time_Step}
 run             {Num_Steps} start 0 stop {Stop} 
 write_restart {Restart_Out}
-
-
-
-

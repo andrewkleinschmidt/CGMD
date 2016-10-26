@@ -35,7 +35,7 @@ def main():
     Data_Filename = 'data.P3HT_Solvent_%d_%d' % ( deg_polymerization, num_polymer)
 
 
-    CG_System.P3HTHuangDataLammps(Position_M, Position_S1, Position_S2, Data_Filename, zBoxLength)
+    CG_System.P3HTHuangDataLammps(Position_M, Position_S1, Position_S2, Data_Filename, box_length, zBoxLength)
     CG_System.Run_Huang_Equil(Name, Data_Filename, Solv_Screen)
 
     return

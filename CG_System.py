@@ -15,7 +15,7 @@ import Configure
 import time
 
 
-def P3HTHuangDataLammps(Position_M, Position_S1, Position_S2, Filename, zBoxLength = Box_Length):
+def P3HTHuangDataLammps(Position_M, Position_S1, Position_S2, Filename, box_length, zBoxLength = Box_Length):
 
     Atom_Masses = {}
     Bond_Param = {}
@@ -106,8 +106,8 @@ def P3HTHuangDataLammps(Position_M, Position_S1, Position_S2, Filename, zBoxLeng
     File.write('\t%d\tdihedral types\n' % NumDihedralTypes)
     File.write('\t%d\timproper types\n\n' % NumImproperTypes)
 
-    File.write('\t%.6f\t%.6f xlo xhi\n' %(0., Box_Length))
-    File.write('\t%.6f\t%.6f ylo yhi\n' %(0., Box_Length))
+    File.write('\t%.6f\t%.6f xlo xhi\n' %(0., box_length))
+    File.write('\t%.6f\t%.6f ylo yhi\n' %(0., box_length))
     File.write('\t%.6f\t%.6f zlo zhi\n\n' %(0., zBoxLength))
 
     # Declare Masses

@@ -398,7 +398,7 @@ def generatepolymer( chainlength, BondLengths , Angles, CUM2, Box_Length, zbox_l
     Position_S2[0] = Position_S1[0] + BondLengths['P2P3']*Bases[0,2]
     for i in range(chainlength-1):
         R = BondLengths['P1P1']
-        Theta = 3.14 - Angles['P1P1P1']*(3.14/180.0)
+        Theta = 0.3 - 0.6 * random.random()
         Phi = Gen_Random_Dih(CUM2)
         Position_M[i+1] = Position_M[i]
         Position_M[i+1] += R*(math.cos(Theta))*Bases[i,0] 
